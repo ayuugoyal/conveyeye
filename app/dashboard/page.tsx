@@ -1,3 +1,5 @@
+import WebcamCapture from "@/components/Webcam";
+
 export const metadata = {
     title: "Dashboard : Overview",
 };
@@ -5,7 +7,7 @@ export const metadata = {
 export default function page() {
     return (
         <div>
-            <h1>Dashboard</h1>
+            <WebcamCapture />
         </div>
     );
 }

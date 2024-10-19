@@ -8,13 +8,14 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
     email: z.string().email({ message: "Enter a valid email address" }),
@@ -26,8 +27,8 @@ const formSchema = z.object({
 type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserAuthForm() {
-    // const searchParams = useSearchParams();
-    // const callbackUrl = searchParams.get("callbackUrl");
+    const router = useRouter();
+
     const [loading, startTransition] = useTransition();
     const defaultValues = {
         email: "",
@@ -41,11 +42,25 @@ export default function UserAuthForm() {
     const onSubmit = async (data: UserFormValue) => {
         startTransition(() => {
             console.log(data);
-            // signIn("credentials", {
-            //     email: data.email,
-            //     callbackUrl: callbackUrl ?? "/dashboard",
-            // });
-            toast.success("Signed In Successfully!");
+            console.log(process.env.NEXT_PUBLIC_EMAIL);
+            if (
+                data.email === process.env.NEXT_PUBLIC_EMAIL &&
+                data.password === process.env.NEXT_PUBLIC_PASSWORD
+            ) {
+                Cookies.set(
+                    "token",
+                    process.env.NEXT_PUBLIC_TOKEN || "nothing",
+                    {
+                        expires: 7,
+                    }
+                );
+
+                console.log("Signed In Successfully!");
+                toast.success("Signed In Successfully!");
+                router.push("/dashboard");
+            } else {
+                toast.error("Invalid Credentials");
+            }
         });
     };
 
@@ -99,7 +114,7 @@ export default function UserAuthForm() {
                         className="ml-auto pt-2 w-full"
                         type="submit"
                     >
-                        Continue With Email
+                        Continue With ConveyorEye
                     </Button>
                 </form>
             </Form>

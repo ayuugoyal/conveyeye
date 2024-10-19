@@ -5,15 +5,17 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+// import {
+//     DropdownMenu,
+//     DropdownMenuContent,
+//     DropdownMenuGroup,
+//     DropdownMenuItem,
+//     DropdownMenuLabel,
+//     DropdownMenuSeparator,
+//     DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+
 import { Separator } from "@/components/ui/separator";
 import {
     Sidebar,
@@ -33,21 +35,14 @@ import {
     SidebarRail,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-    BadgeCheck,
-    Bell,
-    ChevronRight,
-    ChevronsUpDown,
-    CreditCard,
-    GalleryVerticalEnd,
-    LogOut,
-} from "lucide-react";
+import { ChevronRight, GalleryVerticalEnd, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import ThemeToggle from "./theme-toggle";
 // import { UserNav } from "./user-nav";
 import { Icons } from "@/components/icons";
+import Cookies from "js-cookie";
 
 export interface NavItem {
     title: string;
@@ -211,21 +206,21 @@ export type Product = {
 export const navItems: NavItem[] = [
     {
         title: "Dashboard",
-        url: "/dashboard/overview",
+        url: "/dashboard",
         icon: "dashboard",
         isActive: false,
         items: [], // Empty array as there are no child items for Dashboard
     },
     {
         title: "Employee",
-        url: "/dashboard/employee",
+        url: "/dashboard",
         icon: "user",
         isActive: false,
         items: [], // No child items
     },
     {
         title: "Product",
-        url: "/dashboard/product",
+        url: "/dashboard",
         icon: "product",
         isActive: false,
         items: [], // No child items
@@ -239,7 +234,7 @@ export const navItems: NavItem[] = [
         items: [
             {
                 title: "Profile",
-                url: "/dashboard/profile",
+                url: "/dashboard",
                 icon: "userPen",
             },
             {
@@ -251,7 +246,7 @@ export const navItems: NavItem[] = [
     },
     {
         title: "Kanban",
-        url: "/dashboard/kanban",
+        url: "/dashboard",
         icon: "kanban",
         isActive: false,
         items: [], // No child items
@@ -263,6 +258,7 @@ export default function AppSidebar({
 }: {
     children: React.ReactNode;
 }) {
+    const router = useRouter();
     const [mounted, setMounted] = React.useState(false);
     const pathname = usePathname();
     // Only render after first client-side mount
@@ -377,13 +373,13 @@ export default function AppSidebar({
                 <SidebarFooter>
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <DropdownMenu>
+                            {/* <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <SidebarMenuButton
                                         size="lg"
                                         className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                                     >
-                                        {/* <Avatar className="h-8 w-8 rounded-lg">
+                                     <Avatar className="h-8 w-8 rounded-lg">
                                             <AvatarImage
                                                 src={session?.user?.image || ""}
                                                 alt={session?.user?.name || ""}
@@ -401,7 +397,7 @@ export default function AppSidebar({
                                             <span className="truncate text-xs">
                                                 {session?.user?.email || ""}
                                             </span>
-                                        </div> */}
+                                        </div> 
                                         <ChevronsUpDown className="ml-auto size-4" />
                                     </SidebarMenuButton>
                                 </DropdownMenuTrigger>
@@ -412,7 +408,7 @@ export default function AppSidebar({
                                     sideOffset={4}
                                 >
                                     <DropdownMenuLabel className="p-0 font-normal">
-                                        {/* <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                                        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                             <Avatar className="h-8 w-8 rounded-lg">
                                                 <AvatarImage
                                                     src={
@@ -439,7 +435,7 @@ export default function AppSidebar({
                                                     {session?.user?.email || ""}
                                                 </span>
                                             </div>
-                                        </div> */}
+                                        </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
 
@@ -463,7 +459,17 @@ export default function AppSidebar({
                                         Log out
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
-                            </DropdownMenu>
+                            </DropdownMenu> */}
+                            <SidebarMenuButton
+                                className="hover:bg-red-500"
+                                onClick={() => {
+                                    Cookies.remove("token");
+                                    router.push("/");
+                                }}
+                            >
+                                <LogOut />
+                                Log out
+                            </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarFooter>
