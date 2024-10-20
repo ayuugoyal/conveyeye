@@ -1,34 +1,69 @@
 "use client";
-
 import React, { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import axios from "axios";
+
+interface OCRResponse {
+    company_name: string | null;
+    manufacturing_date: string | null;
+    expiry_date: string | null;
+    ocr_output_image: string;
+    recognized_text: string[];
+}
 
 export default function WebcamCapture() {
     const webcamRef = useRef<Webcam>(null);
     const [capturedImages, setCapturedImages] = useState<string[]>([]);
     const [isCapturing, setIsCapturing] = useState(false);
+    const [apiResults, setApiResults] = useState<OCRResponse[]>([]);
 
-    const capture = () => {
+    const capture = async () => {
         if (webcamRef.current) {
             const imageSrc = webcamRef.current.getScreenshot();
             if (imageSrc) {
                 setCapturedImages((prevImages) => {
                     const newImages = [imageSrc, ...prevImages];
-                    return newImages.slice(0, 9); // Keep only the 9 most recent images
+                    return newImages.slice(0, 9);
                 });
+
+                const blob = await fetch(imageSrc).then((res) => res.blob());
+
+                const formData = new FormData();
+                formData.append("file", blob);
+                try {
+                    const response = await axios.post(
+                        "http://localhost:8000/extract",
+                        formData,
+                        {
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            },
+                        }
+                    );
+
+                    // Store the API result to display later, including the OCR output image
+                    setApiResults((prevResults) => [
+                        response.data,
+                        ...prevResults,
+                    ]);
+                } catch (error) {
+                    console.error("Error sending image to API:", error);
+                }
             }
         }
     };
+
+    console.log(apiResults);
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
         if (isCapturing) {
             interval = setInterval(() => {
                 capture();
-            }, 2000);
+            }, 5000); // Capture every 1 minute
         }
         return () => {
             if (interval) clearInterval(interval);
@@ -51,7 +86,7 @@ export default function WebcamCapture() {
             <div className="grid gap-4 md:grid-cols-2">
                 <Card className="p-4">
                     <h2 className="text-2xl font-bold mb-4">
-                        Monitor Conveyers belt
+                        Monitor Conveyors belt
                     </h2>
                     <Webcam
                         audio={false}
@@ -98,8 +133,43 @@ export default function WebcamCapture() {
                             </div>
                         ))}
                     </div>
-                </Card>
+                </Card>{" "}
             </div>
+
+            <Card className="p-4 mt-5">
+                <h2 className="text-2xl font-bold mb-4">API Results</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                    {apiResults.length > 0 &&
+                        apiResults.map((result, index) => (
+                            <Card key={index} className="p-4 mb-4">
+                                <h3 className="text-lg font-bold">
+                                    OCR Result {index + 1}
+                                </h3>
+                                <p>
+                                    <strong>Company Name:</strong>{" "}
+                                    {result?.company_name || "N/A"}
+                                </p>
+                                <p>
+                                    <strong>Manufacturing Date:</strong>{" "}
+                                    {result?.manufacturing_date || "N/A"}
+                                </p>
+                                <p>
+                                    <strong>Expiry Date:</strong>{" "}
+                                    {result?.recognized_text || "N/A"}
+                                </p>
+                                {result?.ocr_output_image && (
+                                    <Image
+                                        src={`data:image/jpeg;base64,${result.ocr_output_image}`}
+                                        alt={`OCR Output ${index + 1}`}
+                                        width={200}
+                                        height={150}
+                                        className="w-full h-auto rounded-lg mt-2"
+                                    />
+                                )}
+                            </Card>
+                        ))}
+                </div>
+            </Card>
         </div>
     );
 }
